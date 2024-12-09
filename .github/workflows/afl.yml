@@ -104,7 +104,8 @@ jobs:
         if: success()
         continue-on-error: true
         run: |
-          ./scripts/test_duckdb_output.sh
+          cd scripts
+          ./test_duckdb_output.sh
 
           # file_type=duckdb
           # files=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes)
