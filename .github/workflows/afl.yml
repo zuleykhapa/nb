@@ -16,9 +16,8 @@ jobs:
         with:
           repository: duckdblabs/duckdb_aflplusplus
           ref: 'ci-csv_fuzz_with_flags'
-          token: ${{ secrets.AFL }}
           
-      - run: sed -i 's/300/6000/g' Makefile
+      - run: sed -i 's/200/6000/g' Makefile
       
       # - name: Verify directory structure
       
