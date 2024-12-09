@@ -16,6 +16,7 @@ jobs:
         with:
           repository: duckdblabs/duckdb_aflplusplus
           ref: 'ci-csv_fuzz_with_flags'
+          token: ${{ secrets.AFL }}
           
       - run: sed -i 's/3600/300/g' Makefile
       
