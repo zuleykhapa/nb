@@ -104,7 +104,6 @@ jobs:
         if: success()
         continue-on-error: true
         run: |
-          cd scripts
           ./scripts/test_duckdb_output.sh
 
           # file_type=duckdb
