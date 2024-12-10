@@ -66,8 +66,9 @@ jobs:
       - name: Fuzz
         run: |
           # results with /fuzz_results/duckdb_file_fuzzer/default/crashes/ 
-          make fuzz-duckdb-file
-      
+          for file_type in [ 'csv', 'json', 'parquet', 'duckdb', 'wal' ]; do 
+            make fuzz-${file_type}-file
+          donw
       - name: Inspect fuzz results
         continue-on-error: true
         run: |
