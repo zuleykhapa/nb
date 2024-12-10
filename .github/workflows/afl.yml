@@ -94,10 +94,9 @@ jobs:
             ./fix_wal_files.sh
             ./wal_replay.sh
           else
-            COUNTER=0
             mkdir ../report_${file_type}
             for fuzz_result in ../fuzz_results/duckdb_file_fuzzer/default/crashes/*; do
-              if [ duckdb -c "SELECT * FROM read_${file_type}('${fuzz_result}')" ]; then
+              if [ ! duckdb -c "SELECT * FROM read_${file_type}('${fuzz_result}')" ]; then
                 cp ${fuzz_result} ../report_${file_type}
               fi
             done
