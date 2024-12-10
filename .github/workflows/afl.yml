@@ -18,7 +18,7 @@ jobs:
           ref: 'ci-csv_fuzz_with_flags'
           token: ${{ secrets.AFL }}
           
-      - run: sed -i 's/3600/300/g' Makefile
+      - run: sed -i 's/3600/600/g' Makefile
       
       - name: Set up Docker environment
         run: |
@@ -76,7 +76,7 @@ jobs:
             count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
             if [ $count -eq 0 ]; then
               echo "Fuzz results directory is empty."
-              exut 1
+              exit 1
             else
               echo "CRASHES 📌📌📌"
               ls fuzz_results/${file_type}_file_fuzzer/default/crashes > ${file_type}_crashes.txt
