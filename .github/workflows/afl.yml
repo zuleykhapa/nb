@@ -106,10 +106,10 @@ jobs:
             COUNTER=0
             mkdir ../report_${file_type}
             for fuzz_result in ../fuzz_results/duckdb_file_fuzzer/default/crashes/*; do
-                if [ duckdb -c "SELECT * FROM read_${file_type}('${fuzz_result}')" ]; then
-                  cp ${fuzz_result} ../report_${file_type}
-                fi
-          fi
+              if [ duckdb -c "SELECT * FROM read_${file_type}('${fuzz_result}')" ]; then
+                cp ${fuzz_result} ../report_${file_type}
+              fi
+            done
 
           # file_type=duckdb
           # files=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes)
