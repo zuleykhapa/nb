@@ -71,8 +71,7 @@ jobs:
       - name: Inspect fuzz results
         continue-on-error: true
         run: |
-          for file_type in [ 'csv', 'json', 'parquet', 'duckdb', 'wal' ]
-          do 
+          for file_type in [ 'csv', 'json', 'parquet', 'duckdb', 'wal' ]; do 
             # count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
             count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
             if [ $count -eq 0 ]; then
@@ -85,13 +84,7 @@ jobs:
               exit 0
             fi
           done
-      # - uses: actions/upload-artifact@v4
-      #   continue-on-error: true
-      #   with:
-      #     name: duckdb_crashes
-      #     path: fuzz_results/duckdb_file_fuzzer/default/crashes/*
-      #     compression-level: 9
-    
+          
       - name: Reproduce crashes
         if: success()
         continue-on-error: true
@@ -110,14 +103,7 @@ jobs:
                 cp ${fuzz_result} ../report_${file_type}
               fi
             done
-
-          # file_type=duckdb
-          # files=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes)
-          # if [[ $file_type == 'duckdb' ]]; then
-          #   echo "Testing $file_type output..."
-          #   # the script also collects failing files into a report directory
-          #   ./scripts/test_duckdb_output.sh
-          # fi
+          fi
           
       - name: Upload files
         uses: actions/upload-artifact@v4
