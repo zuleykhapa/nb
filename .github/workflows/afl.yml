@@ -6,9 +6,6 @@ on:
 jobs:
   container-test-job:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        file_type: [ 'csv', 'json', 'parquet', 'duckdb', 'wal' ]
     steps:
       - name: Checkout Duckdb AFL++
         uses: actions/checkout@v4
@@ -65,13 +62,14 @@ jobs:
       - name: Fuzz
         run: |
           # results with /fuzz_results/duckdb_file_fuzzer/default/crashes/ 
-          # for file_type in [ 'csv', 'json', 'parquet', 'duckdb', 'wal' ]; do 
+          types='csv', 'json', 'parquet', 'duckdb', 'wal'
+          for file_type in ${types}; do 
             make fuzz-${file_type}-file
-          # done
+          done
       - name: Inspect fuzz results
         continue-on-error: true
         run: |
-          # for file_type in [ 'csv', 'json', 'parquet', 'duckdb', 'wal' ]; do 
+          for file_type in ${types}; do 
             # count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
             count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
             if [ $count -eq 0 ]; then
@@ -83,7 +81,7 @@ jobs:
               cat ${file_type}_crashes.txt
               exit 0
             fi
-          # done
+          done
           
       - name: Reproduce crashes
         if: success()
