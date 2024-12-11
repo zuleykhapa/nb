@@ -12,7 +12,7 @@ jobs:
         with:
           repository: duckdblabs/duckdb_aflplusplus
           ref: 'ci-csv_fuzz_with_flags'
-          token: ${{ secrets.AFL }}
+          token: $ secrets.AFL 
           
       - run: sed -i 's/3600/1200/g' Makefile
       
@@ -63,22 +63,22 @@ jobs:
         run: |
           # results with /fuzz_results/duckdb_file_fuzzer/default/crashes/ 
           types=('csv' 'json' 'parquet' 'duckdb' 'wal')
-          for file_type in ${types}; do 
-            make fuzz-${file_type}-file
+          for file_type in $types; do 
+            make fuzz-$file_type-file
           done
       - name: Inspect fuzz results
         continue-on-error: true
         run: |
-          for file_type in ${types}; do 
-            # count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
-            count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
+          for file_type in $types; do 
+            # count=$(ls fuzz_results/$file_type_file_fuzzer/default/crashes | wc -l)
+            count=$(ls fuzz_results/$file_type_file_fuzzer/default/crashes | wc -l)
             if [ $count -eq 0 ]; then
               echo "Fuzz results directory is empty."
               exit 1
             else
               echo "CRASHES 📌📌📌"
-              ls fuzz_results/${file_type}_file_fuzzer/default/crashes > ${file_type}_crashes.txt
-              cat ${file_type}_crashes.txt
+              ls fuzz_results/$file_type_file_fuzzer/default/crashes > $file_type_crashes.txt
+              cat $file_type_crashes.txt
               exit 0
             fi
           done
@@ -88,17 +88,17 @@ jobs:
         continue-on-error: true
         run: |
           cd scripts
-          for file_type in ${types}; do 
-            if [[ $file_type == 'duckdb' ]]; then
+          for file_type in $types; do 
+            if $file_type == 'duckdb'; then
               ./test_duckdb_output.sh
-            elif [[ $file_type == 'wal' ]]; then
+            elif $file_type == 'wal'; then
               ./fix_wal_files.sh
               ./wal_replay.sh
             else
-              mkdir ../report_${file_type}
+              mkdir ../report_$file_type
               for fuzz_result in ../fuzz_results/duckdb_file_fuzzer/default/crashes/*; do
-                if [ ! duckdb -c "SELECT * FROM read_${file_type}('${fuzz_result}')" ]; then
-                  cp ${fuzz_result} ../report_${file_type}
+                if [ ! duckdb -c "SELECT * FROM read_$file_type('$fuzz_result')" ]; then
+                  cp $fuzz_result ../report_$file_type
                 fi
               done
             fi
