@@ -14,7 +14,7 @@ jobs:
           ref: 'ci-csv_fuzz_with_flags'
           token: ${{ secrets.AFL }}
           
-      - run: sed -i 's/3600/600/g' Makefile
+      - run: sed -i 's/3600/1200/g' Makefile
       
       - name: Set up Docker environment
         run: |
@@ -88,20 +88,21 @@ jobs:
         continue-on-error: true
         run: |
           cd scripts
-          if [[ $file_type == 'duckdb' ]]; then
-            ./test_duckdb_output.sh
-          elif [[ $file_type == 'wal' ]]; then
-            ./fix_wal_files.sh
-            ./wal_replay.sh
-          else
-            mkdir ../report_${file_type}
-            for fuzz_result in ../fuzz_results/duckdb_file_fuzzer/default/crashes/*; do
-              if [ ! duckdb -c "SELECT * FROM read_${file_type}('${fuzz_result}')" ]; then
-                cp ${fuzz_result} ../report_${file_type}
-              fi
-            done
-          fi
-          
+          for file_type in ${types}; do 
+            if [[ $file_type == 'duckdb' ]]; then
+              ./test_duckdb_output.sh
+            elif [[ $file_type == 'wal' ]]; then
+              ./fix_wal_files.sh
+              ./wal_replay.sh
+            else
+              mkdir ../report_${file_type}
+              for fuzz_result in ../fuzz_results/duckdb_file_fuzzer/default/crashes/*; do
+                if [ ! duckdb -c "SELECT * FROM read_${file_type}('${fuzz_result}')" ]; then
+                  cp ${fuzz_result} ../report_${file_type}
+                fi
+              done
+            fi
+          done
       - name: Upload files
         uses: actions/upload-artifact@v4
         with:
