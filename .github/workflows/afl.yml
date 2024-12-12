@@ -85,23 +85,27 @@ jobs:
         continue-on-error: true
         run: |
           types=('csv' 'json' 'parquet' 'duckdb' 'wal')
+          
           for file_type in "${types[@]}"; do 
             echo "Testing $file_type crashes..."
-            crash_dir=fuzz_results/${file_type}_file_fuzzer/default/crashes
-            report_dir=report_${file_type}
-            mkdir -p "$report_dir"
 
-            if [ "$file_type" == "duckdb" ]; then
-              ./scripts/test_duckdb_output.sh
-            elif [ "$file_type" == "wal" ]; then
-              ./scripts/fix_wal_files.sh
-              ./scripts/wal_replay.sh
-            else
-              for fuzz_result in "$crash_dir"/*; do
-                if ! duckdb -c "SELECT * FROM read_${file_type}('$fuzz_result')"; then
-                  cp "$fuzz_result" "$report_dir"
-                fi
-              done
+            if fuzz_results/${file_type}_file_fuzzer/default/crashes; then
+              crash_dir=fuzz_results/${file_type}_file_fuzzer/default/crashes
+              report_dir=report_${file_type}
+              mkdir -p "$report_dir"
+  
+              if [ "$file_type" == "duckdb" ]; then
+                ./scripts/test_duckdb_output.sh
+              elif [ "$file_type" == "wal" ]; then
+                ./scripts/fix_wal_files.sh
+                ./scripts/wal_replay.sh
+              else
+                for fuzz_result in "$crash_dir"/*; do
+                  if ! duckdb -c "SELECT * FROM read_${file_type}('$fuzz_result')"; then
+                    cp "$fuzz_result" "$report_dir"
+                  fi
+                done
+              fi
             fi
           done
           echo "Crash testing complete"
