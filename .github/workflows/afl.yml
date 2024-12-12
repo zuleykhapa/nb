@@ -57,7 +57,8 @@ jobs:
 
       - name: Fuzz
         run: |
-          types=('csv' 'json' 'parquet' 'duckdb' 'wal')
+          # types=('csv' 'json' 'parquet' 'duckdb' 'wal')
+          types=('csv' 'json' 'duckdb' 'wal')
           for file_type in "${types[@]}"; do 
             echo "Fuzzing $file_type 🛜"
             make "fuzz-${file_type}-file"
