@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Duckdb AFL++
         uses: actions/checkout@v4
         with:
-          repository: duckdblabs/duckdb_aflplusplus
+          repository: duckdblabs/duckdb-aflplusplus
           ref: 'ci-csv_fuzz_with_flags'
           token: ${{secrets.AFL}}
           
@@ -28,12 +28,12 @@ jobs:
 
       - name: Copy directories into container (make afl-up)
         run: |
-          docker exec -w / afl-container mkdir -p duckdb_aflplusplus
-          docker cp src afl-container:/duckdb_aflplusplus/src
-          docker cp scripts afl-container:/duckdb_aflplusplus/scripts
-          docker exec afl-container mkdir -p /duckdb_aflplusplus/build
-          docker exec afl-container mkdir -p /duckdb_aflplusplus/corpus
-          docker exec afl-container mkdir -p /duckdb_aflplusplus/results
+          docker exec -w / afl-container mkdir -p duckdb-aflplusplus
+          docker cp src afl-container:/duckdb-aflplusplus/src
+          docker cp scripts afl-container:/duckdb-aflplusplus/scripts
+          docker exec afl-container mkdir -p /duckdb-aflplusplus/build
+          docker exec afl-container mkdir -p /duckdb-aflplusplus/corpus
+          docker exec afl-container mkdir -p /duckdb-aflplusplus/results
 
       - name: Install DuckDB into the container
         run: |
