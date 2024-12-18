@@ -3,19 +3,29 @@ name: ci
 on:
   workflow_dispatch:
   push:
-
 jobs:
   container-test-job:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        file_type: [ 'duckdb' ]
+        # file_type: [ 'csv', 'json', 'parquet', 'duckdb', 'wal' ]
     steps:
       - name: Checkout Duckdb AFL++
         uses: actions/checkout@v4
         with:
-          repository: duckdblabs/duckdb-aflplusplus
+          repository: duckdblabs/duckdb_aflplusplus
           ref: 'ci-csv_fuzz_with_flags'
-          token: ${{secrets.AFL}}
+          token: ${{ secrets.AFL }}
           
-      - run: sed -i 's/3600/1200/g' Makefile
+      - run: sed -i 's/300/6000/g' Makefile
+      
+      # - name: Verify directory structure
+      
+      #   run: |
+      #     ls -la
+      #     ls -la src
+      #     ls -la scripts
       
       - name: Set up Docker environment
         run: |
@@ -24,94 +34,92 @@ jobs:
 
       - name: Start AFL++ container
         run: |
+          # Run the container in detached mode, naming it 'afl-container'
           docker run --name afl-container -d aflplusplus/aflplusplus sleep infinity
 
       - name: Copy directories into container (make afl-up)
         run: |
-          docker exec -w / afl-container mkdir -p duckdb-aflplusplus
-          docker cp src afl-container:/duckdb-aflplusplus/src
-          docker cp scripts afl-container:/duckdb-aflplusplus/scripts
-          docker exec afl-container mkdir -p /duckdb-aflplusplus/build
-          docker exec afl-container mkdir -p /duckdb-aflplusplus/corpus
-          docker exec afl-container mkdir -p /duckdb-aflplusplus/results
-
+          # Create necessary directories in the container and copy files
+          docker exec -w / afl-container mkdir -p duckdb_aflplusplus
+          docker cp src afl-container:/duckdb_aflplusplus/src
+          docker cp scripts afl-container:/duckdb_aflplusplus/scripts
+          docker exec afl-container mkdir -p /duckdb_aflplusplus/build
+          docker exec afl-container mkdir -p /duckdb_aflplusplus/corpus
+          docker exec afl-container mkdir -p /duckdb_aflplusplus/results
       - name: Install DuckDB into the container
         run: |
+          # Install dependencies (like wget) and DuckDB inside the container
           docker exec afl-container apt-get update
           docker exec afl-container apt-get install -y wget unzip
           docker exec afl-container wget https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-linux-amd64.zip
           docker exec afl-container unzip duckdb_cli-linux-amd64.zip
           docker exec afl-container mv duckdb /usr/local/bin/duckdb
           docker exec afl-container duckdb --version
-
+      
+      # - name: upterm
+      #   uses: owenthereal/action-upterm@v1
       - name: Compile Fuzzer
+        # continue-on-error: true
         run: |
           make compile-fuzzers-CI
-
-      - name: Install DuckDB locally
+          
+      - name: Install DuckDB
         run: |
           wget https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-linux-amd64.zip
           unzip duckdb_cli-linux-amd64.zip
           sudo mv duckdb /usr/local/bin/duckdb
           rm duckdb_cli-linux-amd64.zip
-
+      
       - name: Fuzz
         run: |
-          # types=('csv' 'json' 'parquet' 'duckdb' 'wal')
-          types=('csv' 'json' 'duckdb' 'wal')
-          for file_type in "${types[@]}"; do 
-            echo "Fuzzing $file_type 🛜"
-            make "fuzz-${file_type}-file"
-          done
-          echo "Done fuzzing"
+          # results with /fuzz_results/duckdb_file_fuzzer/default/crashes/ 
+          python scripts/ci_scripts/test.py
+      
+      # - name: Inspect fuzz results
+      #   continue-on-error: true
+      #   run: |
+      #     # for file_type in [ 'csv', 'json', 'parquet', 'duckdb', 'wal' ]
+      #     # do 
+      #     file_type=duckdb
+      #       # count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
+      #       count=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes | wc -l)
+      #       if [ $count -eq 0 ]; then
+      #         echo "Fuzz results directory is empty."
+      #         exut 1
+      #       else
+      #         echo "CRASHES 📌📌📌"
+      #         ls fuzz_results/${file_type}_file_fuzzer/default/crashes > ${file_type}_crashes.txt
+      #         cat ${file_type}_crashes.txt
+      #         exit 0
+      #       fi
+      #     # done
+      # - uses: actions/upload-artifact@v4
+      #   continue-on-error: true
+      #   with:
+      #     name: duckdb_crashes
+      #     path: fuzz_results/duckdb_file_fuzzer/default/crashes/*
+      #     compression-level: 9
+    
+      # - name: Reproduce crashes
+      #   if: success()
+      #   continue-on-error: true
+      #   run: |
+      #     cd scripts
+      #     ./scripts/test_duckdb_output.sh
 
-      - name: Inspect fuzz results
-        continue-on-error: true
-        run: |
-          types=('csv' 'json' 'parquet' 'duckdb' 'wal')
-          for file_type in "${types[@]}"; do 
-            echo "Inspecting crashes for $file_type..."
-            crash_dir=fuzz_results/${file_type}_file_fuzzer/default/crashes
-            if [ -d "$crash_dir" ] && [ "$(ls -A $crash_dir)" ]; then
-              echo "Crashes found for $file_type"
-              ls "$crash_dir" > "${file_type}_crashes.txt"
-              cat "${file_type}_crashes.txt"
-            else
-              echo "No crashes found for $file_type"
-            fi
-          done
-
-      - name: Reproduce crashes
-        continue-on-error: true
-        run: |
-          types=('csv' 'json' 'parquet' 'duckdb' 'wal')
+      #     # file_type=duckdb
+      #     # files=$(ls fuzz_results/${file_type}_file_fuzzer/default/crashes)
+      #     # if [[ $file_type == 'duckdb' ]]; then
+      #     #   echo "Testing $file_type output..."
+      #     #   # the script also collects failing files into a report directory
+      #     #   ./scripts/test_duckdb_output.sh
+      #     # fi
           
-          for file_type in "${types[@]}"; do 
-            echo "Testing $file_type crashes..."
+      # - name: Upload files
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     path: report/*
+      #     name: FILES
 
-            if fuzz_results/${file_type}_file_fuzzer/default/crashes; then
-              crash_dir=fuzz_results/${file_type}_file_fuzzer/default/crashes
-              report_dir=report_${file_type}
-              mkdir -p "$report_dir"
-  
-              if [ "$file_type" == "duckdb" ]; then
-                ./scripts/test_duckdb_output.sh
-              elif [ "$file_type" == "wal" ]; then
-                ./scripts/fix_wal_files.sh
-                ./scripts/wal_replay.sh
-              else
-                for fuzz_result in "$crash_dir"/*; do
-                  if ! duckdb -c "SELECT * FROM read_${file_type}('$fuzz_result')"; then
-                    cp "$fuzz_result" "$report_dir"
-                  fi
-                done
-              fi
-            fi
-          done
-          echo "Crash testing complete"
-
-      - name: Upload files
-        uses: actions/upload-artifact@v4
-        with:
-          path: report_*/**
-          name: AFL++ Reports
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
