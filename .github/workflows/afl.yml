@@ -18,7 +18,7 @@ jobs:
           ref: 'ci-csv_fuzz_with_flags'
           token: ${{ secrets.AFL }}
           
-      - run: sed -i 's/300/6000/g' Makefile
+      - run: sed -i 's/3600/600/g' Makefile
       
       # - name: Verify directory structure
       
