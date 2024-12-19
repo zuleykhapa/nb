@@ -80,7 +80,6 @@ jobs:
             echo "No crashes detected"
           fi
 
-      - uses: owenthereal/action-upterm@v1
 
       - uses: actions/upload-artifact@v4
         continue-on-error: true
@@ -88,6 +87,8 @@ jobs:
           name: crashes
           pattern: fuzz_results/*_file_fuzzer/default/crashes/*
           compression-level: 9
+          
+      - uses: owenthereal/action-upterm@v1
     
       # - name: Reproduce crashes
       #   if: success()
