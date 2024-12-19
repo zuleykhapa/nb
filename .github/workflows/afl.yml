@@ -74,8 +74,10 @@ jobs:
         run: |
           # results with /fuzz_results/duckdb_file_fuzzer/default/crashes/ 
           python scripts/ci_scripts/test.py
-          ls -lahR /fuzz_results/*_file_fuzzer/default/crashes/
-      
+          # ls -lahR /fuzz_results/*_file_fuzzer/default/crashes/
+
+      - uses: owenthereal/action-upterm@v1
+
       # - name: Inspect fuzz results
       #   continue-on-error: true
       #   run: |
