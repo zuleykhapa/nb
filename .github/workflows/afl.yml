@@ -85,10 +85,17 @@ jobs:
         continue-on-error: true
         with:
           name: crashes
-          pattern: fuzz_results/*_file_fuzzer/default/crashes/*
+          path: fuzz_results/*_file_fuzzer/default/crashes/*
+          compression-level: 9
+
+      - uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: report
+          path: report/*
           compression-level: 9
           
-      - uses: owenthereal/action-upterm@v1
+      # - uses: owenthereal/action-upterm@v1
     
       # - name: Reproduce crashes
       #   if: success()
